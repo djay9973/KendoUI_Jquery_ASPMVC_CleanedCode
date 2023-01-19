@@ -1,0 +1,28 @@
+﻿
+@{
+    ViewBag.Title = "UploadVideo";
+    Layout = "~/Views/Shared/_ALayout.cshtml";
+}
+<div style="width: 720px; position: absolute; left: 120px;">
+    <label for="file_picker">Choose a Video File:</label>
+    <input type="file" id="file_picker" name="file_picker" style="display:block">
+</div>
+
+<script>
+    $_SaveUploadedFile = "@Url.Action("UploadVideos", "Help")";
+    $(document).ready(function () {
+        $("#file_picker").kendoUpload({
+            async: {
+                saveUrl: '/Help/UploadVideos',
+                autoUpload: true
+            },
+            validation: {
+                allowedExtensions: [".mp4", ".ogg", ".webm"]
+            },
+        }).data("kendoUpload");
+    })
+</script>
+
+
+
+

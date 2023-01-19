@@ -1,0 +1,490 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_ALayout.cshtml";
+}
+
+@*
+    <div id="data-container">
+        <div id="grid"></div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            console.log("** Dom is ready **");
+            // Dom is now ready, Need to initialize kendo grid
+            // Define which columns should be visible in kendo grid
+            var columnOptions = [{
+                field: "BookID",
+                editable: false
+            }, {
+                field: "Title",
+                title: "Title",
+                //locked: true, // Ensure when locked is true it must be require to set width explicitly to each colummns
+                width: 240
+            }, {
+                field: "Authers",
+                title: "Authers",
+                //width: 240 // Ensure when locked is true it must be require to set width explicitly to each colummns
+            }];
+            // Prepare Datasource object using Web Service/Web API
+            var dataSourceOptions = {
+                type: "odata",
+                transport: {
+                    read: "@Url.Action("Index", "Book")"
+                },
+                pageSize: 20,
+                schema: {
+                    model: {
+                        id: "BookID"
+                    }
+                }
+            };
+            //// Prepare Datasource object with static data
+            //Configure or activate necessary feature in grid
+            var kendoGridOption = {
+                dataSource: dataSourceOptions,
+                columns: columnOptions,
+                toolbar: [{
+                    name: "cancel"
+                }, {
+                    name: "excel"
+                }, {
+                    name: "pdf"
+                }],
+                // toolbar: [{ name: "cancel" }, { name: "create" }, { name: "save" }, { name: "excel" }, { name: "pdf" }],
+                excel: {
+                    allPages: true,
+                    fileName: "Customer Details.xlsx",
+                    filterable: true //Enables or disables column filtering in the Excel file
+                },
+                height: 630, //Set height so grid is displayed on visible window and scroll appears for more records
+                editable: true, // editable: "popup",
+                // groupable: true, // Customize empty message in groupable option
+                groupable: {
+                    messages: {
+                        empty: "Drop columns here"
+                    }
+                },
+                sortable: true,
+                filterable: true,
+                resizable: true,
+                reorderable: true,
+                columnMenu: true, //This enable excel like filter menu
+                //noRecords: true, // Configure grid for no record and also possible to define custom template as well.
+                noRecords: {
+                    template: "No data available on current page. Current page is: #=this.dataSource.page()#"
+                },
+                //selectable: "multiple cell",// persistSelection not working with cell selection
+                selectable: "multiple row", // persistSelection only works with row selection
+                persistSelection: true,
+                navigatable: true, // e.g. Keyboard Navigation. For info visit https://demos.telerik.com/kendo-ui/grid/keyboard-navigation
+                allowCopy: {
+                    delimeter: ",",
+                },
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5,
+                    pageSize: 20
+                }
+            };
+            // Initialize kendo grid using ID Selector
+            $("#grid").kendoGrid(kendoGridOption);
+        });
+    </script>*@
+
+
+<div id="example">
+    <div id="grid"></div>
+</div>
+<script>
+    $(document).ready(function () {
+        $("#grid").kendoGrid({
+            height: 400,
+            columns: [
+                { field: "Title", title: "Book Title" },
+                { field: "Authers", title: "Book Authers" },
+                { field: "Id", title: "BookId"},
+                { command: ["edit", "destroy"], title: "Actions", width: "200px" }
+            ],
+            editable: "popup",
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            sortable: false,
+            filterable: false,
+            toolbar: ["create"],
+            dataSource: {
+                serverPaging: true,
+                serverFiltering: true,
+                serverSorting: true,
+                pageSize: 10,
+                schema: {
+                    data: "Data",
+                    total: "Total",
+                    model: {
+                        id: "Id",
+                        fields: {
+                            AuthorId: { validation: { required: false, editable: false } },
+                            Title: { validation: { required: true } },
+                            Authers: { validation: { required: true } },
+                        }
+                    }
+                },
+                batch: true,
+                transport: {
+                    create: {
+                        url: "/Book/Create",
+                        type: "POST",
+                        complete: function (e) {
+                            $("#grid").data("kendoGrid").dataSource.read();
+                        }
+                    },
+                    read: {
+                        url: "/Book/ReadBooks",
+                        dataType: "json",
+                        type: "GET"
+                    },
+                    update: {
+                        url: "/Book/Edit",
+                        type: "POST",
+                        complete: function (e) {
+                            $("#ArticlesGrid").data("kendoGrid").dataSource.read();
+                        }
+                    },
+                    destroy: {
+                        url: "/Book/Delete",
+                        type: "POST"
+                    },
+                    parameterMap: function (data, operation) {
+                        if (operation != "read") {
+                            var articleViewModel = data.models[0];
+                            //articleViewModel.AuthorId = data.models[0]
+                            console.log(articleViewModel);
+                            return articleViewModel;
+                        } else {
+                            return { data: kendo.stringify(operation.data) }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+
+
+<!--<script>
+    $(document).ready(function () {
+        console.log("** Dom is ready **");-->
+       @*var DataSources = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "@Url.Action("ReadBooks", "Book")",
+                    dataType: "json",
+                    type: "get"
+                },
+                update: {
+                    url: "@Url.Action("Edit", "Book")",
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    type: "post"
+                },
+                parameterMap: function (options, operation) {
+                    if (operation !== "read" && options.models) {
+                        return { models: kendo.stringify(options.models) };
+                        console.log("** Datasource is ready **");
+                    }
+                }
+            },
+            batch: true,
+            pageSize: 5,
+            schema: {
+                model: {
+                    id: "Id",
+                    fields: {
+                        Id: { editable: false, nullable: false },
+                        Title: { validation: { required: true } },
+                        Authers: { validation: { required: true } }
+                    }
+                }
+            }
+        });*@
+
+        <!--$("#grid").kendoGrid({
+            //dataSource: DataSources,-->
+            @*dataSource: {
+                transport: {
+                    read: {
+                        dataType: "json",
+                        url: '@Url.Action("ReadBooks", "Book")',
+                        async: true,
+                        type: 'get'
+                    }
+                }
+            },*@
+            <!--dataSource: {
+                transport: {
+                    read: {
+                        url: "@Url.Action("ReadBooks", "Book")",
+                        dataType: "json",
+                        type: "get"
+                    },
+                    update: {
+                        url: "@Url.Action("Edit", "Book")",
+                        dataType: "json",
+                        contentType: "application/json; charset=utf-8",
+                        type: "post"
+                    },
+                    parameterMap: function (options, operation) {
+                        if (operation !== "read" && options.models) {
+                            return { models: kendo.stringify(options.models) };
+                            console.log("** Datasource is ready **");
+                        }
+                    }
+                }
+                },
+            navigatable: true,
+            pageable: true,
+            height: 300,
+            toolbar: ["create", "save", "cancel"],
+            columns: [
+                { field: "Id", title: "Id", width: 60, editable: false },
+                { field: "Title", title: "Title", width: 60, editable: false },
+                { field: "Authers", title: "Authers", width: 60, editable: false }],
+            editable: "popup"
+        });
+    });-->
+
+    @*DataSources.fetch(function () {
+        var product = DataSources.at(0);
+        product.set("Title", "bad");
+        DataSources.sync(); //makes request to https://demos.telerik.com/kendo-ui/service/products/update
+    });*@
+
+    <!--function customBoolEditor(container, options) {
+        $('<input class="k-checkbox" type="checkbox" name="Discontinued" data-type="boolean" data-bind="checked:Discontinued">').appendTo(container);
+    }
+</script>-->
+
+@*<div id="my-grid"></div>
+
+<script>
+        $(document).ready(function () {
+            $('#my-grid').kendoGrid
+                ({
+                    width: "1000px",
+                    height: "400px",
+                    // Add toolbar buttons for creating and saving buttons.
+                    toolbar: ["create", "save"],
+                    edit: function (event) {
+                        console.log("at edit event");
+
+                    },
+                    save: function (event) {
+                        console.log("at saveChanges event");
+                    },
+                    // Enable the filtering functionality.
+                    filterable: true,
+                    // Enable the editing functionality (incell by default).
+                    editable: true,
+                    // The columns configuration is an array of objects.
+                    columns: [
+                        // The field matches the ID property in the data array.
+                        { field: "ID", title: "Book Id", width: "100px", editable: false },
+                        { field: "Title", title: "Title", width: "150px" },
+                        { field: "Authers", title: "Book Auther", width: "200px" },
+                        { command: ["edit", "destroy"], title: "Actions", width: "200px" }
+                    ],
+                    editable: "popup",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                dataType: "json",
+                                url: '@Url.Action("ReadBooks", "Book")',
+                                async: true,
+                                type: 'get'
+                            },
+                            create: {
+                                url: "@Url.Action("Create", "Book")",
+                                type: "POST",
+                                complete: function (e) {
+                                    $("#grid").data("kendoGrid").dataSource.read();
+                                }
+                            },
+                            edit: {
+                                url: "@Url.Action("Edit", "Book")",
+                                dataType: "json",
+                                contentType: "application/json; charset=utf-8",
+                                type: "post"
+                            },
+                            destroy: {
+                                url: "@Url.Action("Delete", "Book")",
+                                dataType: "json",
+                                contentType: "application/json; charset=utf-8",
+                                type: "post"
+                            },
+
+                       }
+
+                    }
+
+                });
+        });
+</script>*@
+<div id="example">
+    <div id="grid"></div>
+    <script>
+        $(function () {
+            $("#grid").kendoGrid({
+                height: 400,
+                columns: [
+                    { field: "Title", title: "Book Title", width: "100px" },
+                    { field: "Authers", title: "Authers", width: "70px" },
+                    { command: ["edit", "destroy"], title: "&nbsp;", width: "250px" }
+                ],
+                editable: "popup",
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                sortable: false,
+                filterable: false,
+                toolbar: ["create"],
+                dataSource: {
+                    serverPaging: true,
+                    serverFiltering: true,
+                    serverSorting: true,
+                    pageSize: 10,
+                    schema: {
+                       @* data: "Data",
+                        total: "Total",*@
+                        model: {
+                            id: "Id",
+                            fields: {
+                                Id: { editable: false, nullable: true },
+                                Title: { validation: { required: true } },
+                                Authers: { validation: { required: true } },
+                            }
+                        }
+                    },
+                    batch: true,
+                    transport: {
+                        create: {
+                            url: "/Book/Create",
+                            //type: "POST",
+                            dataType: "json",
+                            type: "post",
+                            complete: function (e) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        read: {
+                            url: "/Book/ReadBooks",
+                            dataType: "json",
+                            type: "GET"
+                        },
+                        update: {
+                            url: "/Book/Edit",
+                            type: "POST",
+                            complete: function (e) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        destroy: {
+                            url: "/Book/Delete",
+                            type: "POST"
+                        },
+                        parameterMap: function (data, operation) {
+                            if (operation != "read") {
+                                var articleViewModel = data.models[0];
+                                //articleViewModel.AuthorId = data.models[0]
+                                console.log(articleViewModel);
+                                return articleViewModel;
+                            } else {
+                                return { data: kendo.stringify(operation.data) }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    <!--<script>
+        $(document).ready(function () {
+                dataSource = new kendo.data.DataSource({
+                    transport: {
+                        create: {
+                            url: "@Url.Action("Create", "Book")",
+                            dataType: "json",
+                            type: "post"
+                        },
+                        read: {
+                            url: '@Url.Action("ReadBooks", "Book")',
+                            dataType: "json"
+                        },
+                        update: {
+                            url: "@Url.Action("Edit", "Book")",
+                            dataType: "json",
+                            contentType: "application/json; charset=utf-8",
+                            type: "post"
+                        },
+                        destroy: {
+                            url: "@Url.Action("Delete", "Book")",
+                            dataType: "json"
+                        },-->
+
+                        @*parameterMap: function (data, operation) {
+                            if (operation !== "read" && data.models) {
+                                return { models: kendo.stringify(data.models) };
+                            }
+                        }*@
+                        <!--parameterMap: function (data, operation) {
+                    if (operation != "read") {
+                        var articleViewModel = data.models[0];
+                        console.log(articleViewModel);
+                        return articleViewModel;
+                    }
+                    else {
+                        return { data: kendo.stringify(operation.data) }
+                    }
+                     }
+                    },
+                    batch: true,
+                    pageSize: 20,
+                    schema: {
+                        data: "Data",
+                        total: "Total",
+                        model: {
+                            id: "Id",
+                            fields: {
+                                Id: { editable: false, nullable: true },
+                                Title: { validation: { required: true } },
+                                Authers: { validation: { required: true } },
+                            }
+                        }
+                    }
+                });
+
+            $("#grid").kendoGrid({
+                dataSource: dataSource,
+                pageable: true,
+                height: 550,
+                toolbar: ["create", "save", "cancel"],
+                columns: [
+                    { field: "Title", title: "Book Title", width: "100px" },
+                    { field: "Authers", title: "Authers", width: "70px" },
+                    { command: ["edit", "destroy"], title: "&nbsp;", width: "250px" }],
+                editable: "popup",
+                
+                edit: function (event) {
+                    console.log("at edit event");
+
+                },
+            });
+        });
+    </script>-->
+    </div>

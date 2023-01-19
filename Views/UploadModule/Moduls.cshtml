@@ -1,0 +1,81 @@
+﻿
+@{
+    ViewBag.Title = "Moduls";
+    Layout = "~/Views/Shared/_ALayout.cshtml";
+}
+<div id="moduleexample">
+    <div id="modulegrid"></div>
+    <script>
+        $(function () {
+            $("#modulegrid").kendoGrid({
+                height: 400,
+                columns: [
+                    { field: "Moduletitle", title: "Module", width: "100px" },
+                    { command: ["edit", "destroy"], title: "&nbsp;", width: "250px" }
+                ],
+                selectable: true,
+                editable: "popup",
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                sortable: false,
+                filterable: false,
+                toolbar: ["create"],
+                dataSource: {
+                    serverPaging: true,
+                    serverFiltering: true,
+                    serverSorting: true,
+                    pageSize: 10,
+                    schema: {
+                        model: {
+                            id: "MID",
+                            fields: {
+                                MID: { editable: false, nullable: true },
+                                Moduletitle: { editable: true, validation: { required: true } },
+                            }
+                        }
+                    },
+                    batch: true,
+                    transport: {
+                        create: {
+                            url: "/UploadModule/CreateModule",
+                            dataType: "json",
+                            type: "post",
+                            complete: function (e) {
+                                $("#modulegrid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        read: {
+                            url: "/UploadModule/Moduless",
+                            dataType: "json",
+                            type: "GET"
+                        },
+                        update: {
+                            url: "/UploadModule/Edit",
+                            type: "POST",
+                            complete: function (e) {
+                                $("#modulegrid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        destroy: {
+                            url: "/UploadModule/Delete",
+                            type: "POST"
+                        },
+                        parameterMap: function (data, operation) {
+                            if (operation != "read") {
+                                var articleViewModel = data.models[0];
+                                console.log(articleViewModel);
+                                return articleViewModel;
+                            } else {
+                                return { data: kendo.stringify(operation.data) }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</div>
+

@@ -1,0 +1,173 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_ALayout.cshtml";
+}
+<link rel="stylesheet" href="https://kendo.cdn.telerik.com/2022.3.1109/styles/kendo.default-ocean-blue.min.css" />
+
+<script src="https://kendo.cdn.telerik.com/2022.3.1109/js/jquery.min.js"></script>
+<style>
+    .k-label {
+        font-weight: bold !important;
+        color: red;
+        font-size: medium;
+    }
+</style>
+
+<script src="https://kendo.cdn.telerik.com/2022.3.1109/js/kendo.all.min.js"></script>
+<div id="example">
+    <input type="hidden" id="skuCode" name="skuCode" style="width: 100%;" />
+    <input id="dropdownlist">
+    <div id="usergrid"></div>
+    <form method="post" action="#" id="form">
+        <div class="k-d-flex k-justify-content-center" style="padding-top: 54px;" id="textarea1">
+            <div class="k-w-300">
+                <textarea id="invitation" required data-required-msg="Please enter a text." data-max-msg="Enter value between 1 and 200"></textarea>
+                <div class="k-form-footer">
+                    <div class="k-counter-container"><span class="k-counter-value">0</span>/200</div>
+                    <div><a onclick="Apportionment.RefreshTree()">Send Query</a></div>
+                </div>
+            </div>
+        </div>
+        </form>
+        <script>
+
+        var attachments = {
+            getFilePath: function (e) {
+                var dat = $(e).attr("data");
+                window.location.href = `/UserHelp/DownloadFile?FilePaths=${dat}`
+            }
+            }
+            var Apportionment =
+            {
+                RefreshTree: function () {
+                    debugger
+                    $.ajax({
+                        url: "/UserHelp/AddQuery",
+                        data: { "Title": $("#invitation").val() },
+                        type: "POST",
+                    });
+                    debugger
+                },
+            }
+        $("#invitation").kendoTextArea({
+            label: "Send query:",
+            rows: 10,
+            maxLength: 200,
+            placeholder: "Enter your text here."
+        });
+        $("form").submit(function (event) {
+            $.ajax({
+                url: "/UserHelp/AddQuery",
+                data: { "Title": $("#invitation").val() },
+            });
+        });
+        $(document).ready(function () {
+            $("#textarea1").hide();
+            $("#dropdownlist").kendoDropDownList({
+                label: "Select module",
+                placeholder: "Select Modules",
+                dataTextField: "Moduletitle",
+                dataValueField: "MID",
+                dataSource: {
+                    transport: {
+                        read: {
+                            dataType: 'json',
+                            url: '/UploadModule/Modls'
+                        }
+                    },
+                    optionLabel: "Select",
+                },
+                change: function (e) {
+                    $("#skuCode").val(e.sender.text());
+                    var txt = $("#skuCode").val();
+                    $("#usergrid").kendoGrid({
+                        height: 400,
+                        columns: [
+
+                            {
+                                field: "",
+                                title: "Actions",
+                                width: "40px",
+                                template: "<div class='Actions'><a onclick='attachments.getFilePath(this)' data='#=FilePath#'>Download</a></div>",
+                                headerAttributes: {
+                                    style: "font-weight:bold;text-align:center"
+                                },
+                            },
+                            { field: "Title", title: "Title", width: "70px" },
+
+                            {
+                                field: "ModuleId", title: "Module", width: "80px",
+                            },
+                            {
+                                field: "FilePath", title: "File Path", width: "70px"
+                            },
+                        ],
+                        selectable: true,
+                        editable: "inline",
+                        groupable: true,
+                        pageable: {
+                            refresh: true,
+                            pageSizes: true,
+                            buttonCount: 5
+                        },
+                        sortable: false,
+                        filterable: { extra: true },
+                        dataSource: {
+                            serverPaging: true,
+                            serverFiltering: true,
+                            serverSorting: true,
+                            pageSize: 10,
+                            schema: {
+                                model: {
+                                    id: "ID",
+                                    fields: {
+                                        ID: { editable: false, nullable: true },
+                                        Title: { editable: false, validation: { required: true } },
+                                        ModuleId: { editable: false, validation: { required: true } },
+                                        FilePath: { editable: false, nullable: true },
+                                    }
+                                }
+                            },
+                            batch: true,
+                            transport: {
+                                read: {
+
+                                    url: "/UserHelp/GetAllFiles",
+
+                                    data: { Title: txt},
+                                    dataType: "json",
+                                    type: "GET",
+                                    complete: function (e) {
+                                        $("#usergrid").data("kendoGrid").refresh();
+                                    }
+                                },
+
+                                update: {
+                                    url: "/UploadFiles/Edit",
+                                    type: "POST",
+                                    complete: function (e) {
+                                        $("#usergrid").data("kendoGrid").dataSource.read();
+                                    }
+                                },
+                                parameterMap: function (options, operation) {
+                                    if (operation === "read") {
+                                        var selectedID = $("#skuCode").val();
+                                        return { Title: selectedID }
+                                    }
+                                    return kendo.stringify(options.models);
+                                }
+                            }
+                        },
+                    });
+                    //
+                    //Initilize text area
+                    //
+                    $("#textarea1").show();
+                }
+            });
+        });
+
+
+        </script>
+</div>

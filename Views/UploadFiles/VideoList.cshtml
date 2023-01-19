@@ -1,0 +1,164 @@
+﻿
+@{
+    ViewBag.Title = "VideoList";
+    Layout = "~/Views/Shared/_ALayout.cshtml";
+}
+<div id="example">
+    <div id="grid"></div>
+    <script>
+        var uploadInput = '<form method="post" action="#"><div><input name="upload" type="file" /><input type="hidden" id="keyInput" data-bind="value: ModuleId" /><input  type="hidden" id="keyIn" data-bind="value: Upload" /></div></form>';
+        $(function () {
+            $("#grid").kendoGrid({
+                height: 700,
+                columns: [
+                    { field: "Title", title: "Title", width: "70px" },
+
+                    {
+                        field: "ModuleId", title: "Module", width: "80px",
+                        editor: securityActionDropDownEditor,
+                    },
+                    {
+                        field: "FileName",
+                        title: "File", width: "90px"
+                    },
+                    {
+                        title: "Upload", width: "140px",
+                        sortable: false,
+                        template: "#= uploadInput #"
+                     },
+                    {
+                        headerText: "Manage Records", textAlign: "center",
+                        command: ["edit", "destroy"], title: "&nbsp;", width: "80px"
+                    },
+                ],
+                create: function (e) {
+                    var container = e.container;
+                    var txtName = container.find("input[name=FileName]");
+                    $(txtName).show();
+                },
+                selectable: true,
+                editable: "inline",
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                sortable: false,
+                filterable: false,
+                toolbar: ["create"],
+                dataSource: {
+                    serverPaging: true,
+                    serverFiltering: true,
+                    serverSorting: true,
+                    pageSize: 10,
+                    schema: {
+                model: {
+                            id: "ID",
+                            fields: {
+                                ID: { editable: false, nullable: true },
+                                Title: { editable: true, validation: { required: true } },
+                                ModuleId: { editable: true, validation: { required: true } },
+                                FileName: { editable: true, nullable: true},
+                                FilePath: { editable: false, nullable: true },
+                            }
+                        }
+                    },
+                    batch: true,
+                    transport: {
+                        create: {
+                            url: "/UploadFiles/UploadVideos",
+                            dataType: "json",
+                            type: "post",
+                            complete: function (e) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        read: {
+                            url: "/UploadFiles/Videos",
+                            dataType: "json",
+                            type: "GET"
+
+                        },
+                        update: {
+                            url: "/UploadFiles/Edit",
+                            type: "POST",
+                            complete: function (e) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        destroy: {
+                            url: "/UploadFiles/DeleteVideos",
+                            type: "POST"
+                        },
+                        parameterMap: function (data, operation) {
+                            if (operation != "read") {
+                                var articleViewModel = data.models[0];
+                                console.log(articleViewModel);
+                                return articleViewModel;
+                            } else {
+                                return { data: kendo.stringify(operation.data) }
+                            }
+                        }
+                    }
+                },
+                dataBound: function (e) {
+                    var grid = e.sender;
+                    var items = e.sender.items();
+                        var dataItem = grid.dataItem(this);
+                    $("input[type = 'file']").kendoUpload({
+                        multiple: false,
+                            async: {
+                                saveUrl: '/UploadFiles/UploadFile',
+                                autoUpload: true,
+                            },
+                            upload: function (e) {
+                                debugger
+                                $.each(e.files, function (index, value) {
+                                    var fileName = value.name;
+                                    $("#keyIn").val(fileName);
+                                    var keyInput = $("#keyInput").val();
+                                    if (keyInput != null) {
+                                        e.data = {
+                                            moduleid: keyInput
+                                        };
+                                    }
+                                    alert(keyInput);
+                                });
+                            },
+                            dropZone: ".dropZoneElement"
+                        }).data("kendoUpload");
+                    //});
+                }
+            });
+        });
+        function securityActionDropDownEditor(container, options) {
+
+            $('<input required data-bind="value:' + options.field + '"/>')
+                .appendTo(container)
+                .kendoDropDownList({
+                    placeholder: "Select ",
+                    dataTextField: "Moduletitle",
+                    dataValueField: "MID",
+                    dataSource: {
+                        transport: {
+                            read: {
+                                dataType: 'json',
+                                type: "GET",
+                                url: '/UploadModule/Modls'
+                            }
+                        },
+                    },
+                    optionLabel: "Select",
+                    autoBind: false,
+                    index: 1
+                });
+            console.log(options);
+            console.log(options.field);
+        }
+        function showUploadColumn() {
+            $("#grid").data("kendoGrid").showColumn(3)
+        }
+        $("#grid").data("kendoGrid").bind("edit", function () { alert()});
+    </script>
+
+</div>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="2e3b79ebd0bd46eb90cde0d03fc62566" Name="Diagram1">
+        <EntityTypeShape EntityType="KendoCrudModel.Book" Width="1.5" PointX="5.75" PointY="2.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.Employee" Width="1.5" PointX="5.75" PointY="8.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.ModuleList" Width="1.5" PointX="7.75" PointY="8.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.Module" Width="1.5" PointX="0.75" PointY="8.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.Role" Width="1.5" PointX="0.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.Ticket" Width="1.5" PointX="3" PointY="4" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.UserRoleMapping" Width="1.5" PointX="6" PointY="4.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.User" Width="1.5" PointX="3.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.VideoFile" Width="1.5" PointX="3" PointY="8.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="KendoCrudModel.VideosFile" Width="1.5" PointX="7.75" PointY="2.25" IsExpanded="true" />
+        <AssociationConnector Association="KendoCrudModel.FK_VideoFiles_Modules" ManuallyRouted="false" />
+        <AssociationConnector Association="KendoCrudModel.FK__UserRoleM__RoleI__4A8310C6" ManuallyRouted="false" />
+        <AssociationConnector Association="KendoCrudModel.FK_Tickets_Roles" ManuallyRouted="false" />
+        <AssociationConnector Association="KendoCrudModel.FK__UserRoleM__UserI__498EEC8D" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

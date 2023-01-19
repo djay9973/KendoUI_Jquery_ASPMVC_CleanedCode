@@ -1,0 +1,222 @@
+@{
+    Layout = "~/Views/Shared/_TMVCLayout.cshtml";
+    ViewBag.Title = "FileManager";
+}
+<link rel="stylesheet" href="https://kendo.cdn.telerik.com/2020.1.219/styles/kendo.default-v2.min.css" />
+<script src="https://kendo.cdn.telerik.com/2020.1.219/js/jquery.min.js"></script>
+<script src="https://kendo.cdn.telerik.com/2020.1.219/js/kendo.all.min.js"></script>
+
+<script id="preview-template" type="text/kendo-ui-template">
+    <div class="#=styles.fileInfo#">
+        <div class="#=styles.filePreviewWrapper#">
+            <span class="k-icon k-i-#=kendo.getFileGroup(selection[0].extension, true)#"></span>
+        </div>
+        <div class="#=styles.fileTitleWrapper#">
+            <span class="#=styles.fileTitle#">#=selection[0].name#</span>
+        </div>
+        #if(metaFields){#
+        <dl class="#=styles.fileMetaWrapper#">
+            #for(var i = 0; i < metaFields.length; i+=1){#
+            #var field = metaFields[i]#
+            <dt class="#=styles.metaLabel#">#=messages[field]#: </dt>
+            <dd class="#=styles.metaValue# #=styles[field]#">
+                #if(field == "size"){#
+                #=kendo.getFileSizeMessage(selection[0][field])#
+                #} else if(selection[0][field] instanceof Date) {#
+                #=kendo.toString(selection[0][field], "G")#
+                #} else if(field == "extension") {#
+                #=kendo.getFileGroup(selection[0].extension)#
+                #} else {#
+                #=selection[0][field]#
+                #}#
+            </dd>
+            <dd class="line-break"></dd>
+            # } #
+        </dl>
+        #}#
+    </div>
+</script>
+
+<style>
+    .k-action-buttons, .k-state-selected .k-primary.k-state-active, .k-button.k-primary:hover, .k-action-buttons .k-primary:active, .k-button-group .k-button.k-state-active, .k-button-group .k-button.k-state-selected, .k-button-group .k-button:active, .k-button-group > input[type=radio]:checked + .k-button, .k-button-group > input[type=checkbox]:checked + .k-button, .k-button.k-primary.k-state-active, .k-button.k-primary.k-state-selected, .k-button.k-primary:active, .k-button.k-state-selected, .k-editor-toolbar a.k-tool.k-state-selected {
+        border-color: #ff803d !important;
+        background-color: #ff803d !important;
+    }
+
+    .k-switch-on .k-switch-container, .k-dialog-titlebar {
+        background-color: #ff803d !important;
+    }
+
+    .k-dialog-button-layout-stretched .k-primary:not(:hover):not(.k-state-hover):not(:active):not(.k-state-active) {
+        color: #ff803d !important;
+    }
+</style>
+
+<div id="example">
+    <div id="filemanager"></div>
+
+    <script>
+        $(document).ready(function () {
+            $('#menu li a.active').attr('class', '');
+            $('#menu li a#aFile').attr('class', 'active');
+        })
+
+        $("#filemanager").kendoFileManager({
+            dataSource: {
+                schema: kendo.data.schemas.filemanager,
+                transport: {
+                    read: {
+                        url: "@Url.Action("Read", "FileExplorer")",
+                        method: "POST"
+                    },
+                    @*read: function (options) {
+                        var that = this;
+
+                        $.ajax({
+                            url: "@Url.Action("Read", "FileExplorer")",
+                            dataType: "json",
+                            method: "POST",
+                            data: {}
+,
+                            success: function (result) {
+                                debugger;
+                                options.success(result);
+                            }
+                        });
+                    },*@
+                    create: {
+                        url: "@Url.Action("Create", "FileExplorer")",
+                        method: "POST"
+                    },
+                    update: {
+                        url: "@Url.Action("Update", "FileExplorer")",
+                        method: "POST"
+                    },
+                    destroy: {
+                        url: "@Url.Action("Destroy", "FileExplorer")",
+                        method: "POST"
+                    }
+                }
+            },
+            uploadUrl: "@Url.Action("Upload", "FileExplorer")",
+            toolbar: {
+                items: [
+                    { name: "createFolder" },
+                    { name: "upload" },
+                    { name: "sortField" },
+                    { name: "changeView" },
+                    { name: "spacer" },
+                    { name: "details" },
+                    { name: "search" }
+                ]
+            },
+            contextMenu: {
+                items: [
+                    { name: "open" },
+                    { name: "rename" },
+                    { name: "delete" }
+                ]
+            },
+            previewPane: {
+                singleFileTemplate: kendo.template($("#preview-template").html())
+            },
+            draggable: true,
+            open: onOpen1,
+        });
+
+        function onOpen(e) {
+            //debugger;
+            //if (e.entry.path.includes('.') == true && e.entry.extension != '') {
+
+            //    var url = /*"/GetFiles/";*/ window.location.origin + "/Content/UserFiles/Folders/" + Company + "/" + e.entry.path;
+            //    setTimeout(function () {
+            //        window.open(url, 'Image', 'width=830px,height=400px,left=370px,top=200px,resizable=1');
+            //    }, 100);
+            //}
+            //else {
+            var Company = $("#spnCompany").html();
+
+            //fileManager.navigate(Company);
+            //setTimeout(function () { fileManager.navigate(`${Company}/${e.path}`); }, 200);
+            var fileManager = $("#filemanager").data("kendoFileManager");
+            var parentFolder = fileManager.dataSource.get("New Folder123");
+
+            if (!parentFolder.loaded()) {
+                parentFolder.load()
+            } else {
+                /*fileManager.navigate("TFDemo/New Folder123");*/
+            }
+           // }
+        }
+        function onOpen1(e) {
+            debugger;
+
+            if (e.entry.path.includes('.') == true && e.entry.extension != '') {
+                var Company = $("#spnCompany").html();
+                var url = /*"/GetFiles/";*/ window.location.origin + "/Content/UserFiles/Folders/" + Company + "/" + e.entry.path;
+                setTimeout(function () {
+                    window.open(url, 'Image', 'width=830px,height=400px,left=370px,top=200px,resizable=1');
+                }, 100);
+            }
+
+        }
+    </script>
+</div>
+@*<div id="example">
+        <div id="filemanager"></div>
+
+        <script>
+            $("#filemanager").kendoFileManager({
+                dataSource: {
+                    schema: kendo.data.schemas.filemanager,
+                    transport: {
+                        read: {
+                            url: "@Url.Action("Read", "FileExplorer")",
+                            method: "POST"
+                        },
+                        create: {
+                            url: "@Url.Action("Create", "FileExplorer")",
+                            method: "POST"
+                        },
+                        update: {
+                            url: "@Url.Action("Update", "FileExplorer")",
+                            method: "POST"
+                        },
+                        destroy: {
+                            url: "@Url.Action("Destroy", "FileExplorer")",
+                            method: "POST"
+                        }
+                    }
+                },
+                uploadUrl: "/kendo-ui/service/FileManager/Upload",
+                toolbar: {
+                    items: [
+                        { name: "createFolder" },
+                        { name: "upload" },
+                        { name: "sortDirection" },
+                        { name: "sortField" },
+                        { name: "changeView" },
+                        { name: "spacer" },
+                        { name: "details" },
+                        { name: "search" }
+                    ]
+                },
+                contextMenu: {
+                    items: [
+                        { name: "rename" },
+                        { name: "delete" }
+                    ]
+                },
+                draggable: true,
+                resizable: true
+            });
+
+            $(document).ready(function () {
+                var filemanager = $("#filemanager").getKendoFileManager();
+
+                filemanager.executeCommand({ command: "TogglePaneCommand", options: { type: "preview" } });
+                filemanager.toolbar.fileManagerDetailsToggle.switchInstance.toggle();
+            })
+        </script>
+    </div>*@
+

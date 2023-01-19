@@ -1,0 +1,131 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_ALayout.cshtml";
+}
+<h2>Help Page</h2>
+<div id="example">
+    <div id="grid"></div>
+    <script>
+        $(function () {
+            $("#grid").kendoGrid({
+                height: 400,
+                columns: [
+                    {
+                        field: "TicketNumber", title: "TicketNumber", width: "30px",
+                    },
+                    { field: "Title", title: "Query Title", width: "120px" },
+                    { field: "Description", title: "Description", width: "100px" },
+                    {
+                        field: "Status", title: "Tickets Status", width: "70px",
+                        editor: securityActionDropDownEditor,
+                        template: "#=Status#"
+                    },
+                    {
+                        field: "CreatedOn", title: "Raised On", width: "80px", hidden: false,
+                        format: "{0:yyyy-MM-dd HH:mm:ss}"
+                    },
+                    {
+                        field: "ClosedAt", title: "Closed At", width: "80px", type: "date",
+                        format: "{0:MM/dd/yyyy}",
+                        editor: function (container, options) {
+
+                            $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" data-format="' + options.format + '"/>')
+                                .appendTo(container)
+                                .kendoDatePicker();
+                        }
+                    },
+
+                    { command: ["edit", "destroy"], title: "&nbsp;", width: "80px" },
+
+                ],
+                selectable: true,
+                editable: "popup",
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                sortable: false,
+                filterable: false,
+                toolbar: ["create"],
+                dataSource: {
+                    serverPaging: true,
+                    serverFiltering: true,
+                    serverSorting: true,
+                    pageSize: 10,
+                    schema: {
+                        model: {
+                            id: "Id",
+                            fields: {
+                                Id: { editable: false, nullable: true },
+                                TicketNumber: { editable: false, nullable: true },
+                                Title: { validation: { required: true } },
+                                Description: { validation: { required: true } },
+                                Status: { validation: { required: true } },
+                                CreatedOn: { type: "datetime", editable: false, nullable: true },
+                                ClosedAt: { editable: true, type: "Date"},
+                            }
+                        }
+                    },
+                    batch: true,
+                    transport: {
+                        create: {
+                            url: "/Help/Create",
+                            dataType: "json",
+                            type: "post",
+                            complete: function (e) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        read: {
+                            url: "/help/GetTickets",
+                            dataType: "json",
+                            type: "GET"
+                        },
+                        update: {
+                            url: "/Help/Edit",
+                            type: "POST",
+                            complete: function (e) {
+                                $("#grid").data("kendoGrid").dataSource.read();
+                            }
+                        },
+                        destroy: {
+                            url: "/Help/Delete",
+                            type: "POST"
+                        },
+                        parameterMap: function (data, operation) {
+                            if (operation != "read") {
+                                var articleViewModel = data.models[0];
+                                console.log(articleViewModel);
+                                return articleViewModel;
+                            } else {
+                                return { data: kendo.stringify(operation.data) }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        function securityActionDropDownEditor(container, options) {
+
+            $('<input required data-text-field="text" data-value-field="value" data-bind="value:' + options.field + '"/>')
+                .appendTo(container)
+                .kendoDropDownList({
+                    placeholder: "Select ",
+                    dataSource: [
+                        { text: "No Action", value: "No Action" },
+                        { text: "Active", value: "Active" },
+                        { text: "Pending", value: "Pending" },
+                        { text: "InProcess", value: "InProcess" },
+                        { text: "Resolve", value: "Resolve" }
+                    ],
+                    optionLabel: "Select",
+                    autoBind: false,
+                    index: 1
+                });
+            console.log(options);
+            console.log(options.field);
+        }
+    </script>
+</div>
